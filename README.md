@@ -32,7 +32,7 @@ on:
       - ".github/workflows/latex.yml"
 ```
 
-If you add a new folder or file to the repo (e.g. `images/` for figures included in the document) that is relevant for the latex compiler, **you must add that path to `latex.yml`** under both `push.paths` and `pull_request.paths`. Otherwise, changes to new files won't trigger a recompilation.
+If you add a new folder or file to the repo (e.g. `images/` for figures included in the document) that is relevant for the Latex compiler, **you must add that path to `latex.yml`** under both `push.paths` and `pull_request.paths`. Otherwise, changes to new files won't trigger a recompilation.
 
 Example:
 
