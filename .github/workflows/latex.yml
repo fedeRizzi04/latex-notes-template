@@ -1,0 +1,38 @@
+name: Compile LaTeX
+
+on:
+  push:
+    paths:
+      - "notes.tex"
+      - ".github/workflows/latex.yml"
+  pull_request:
+    paths:
+      - "notes.tex"
+      - ".github/workflows/latex.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Generate PDF
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Download repository
+        uses: actions/checkout@v7
+
+      - name: Compile notes.tex
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: notes.tex
+
+      - name: Publish PDF
+        uses: actions/upload-artifact@v7
+        with:
+          name: notes-pdf
+          path: notes.pdf
+          if-no-files-found: error
+          compression-level: 0
