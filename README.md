@@ -2,6 +2,7 @@
 
 [![Compile LaTeX](https://github.com/fedeRizzi04/latex-notes-template/actions/workflows/latex.yml/badge.svg)](https://github.com/fedeRizzi04/latex-notes-template/actions/workflows/latex.yml)
 [![Made with LaTeX](https://img.shields.io/badge/Made%20with-LaTeX-008080.svg)](https://www.latex-project.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A minimal LaTeX template for lecture/course notes (`notes.tex`), built with `scrbook` and supporting both Italian and English labels (switch via `\dispensalingua` in the preamble).
 
