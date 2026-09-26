@@ -20,7 +20,7 @@ Styled boxes for notes, theorems, proofs and algorithms — ready to use out of 
   <img src="assets/img2.png" width="47%" alt="Example page: algorithm and theorem boxes"/>
 </p>
 
-## Adding new folders (e.g. images)
+## Adding new folders or files
 
 The workflow only triggers on changes to specific paths:
 
@@ -32,7 +32,7 @@ on:
       - ".github/workflows/latex.yml"
 ```
 
-If you add a new folder to the repo (e.g. `images/` for figures included in the document), **you must add that path to `latex.yml`** under both `push.paths` and `pull_request.paths`. Otherwise, changes to files in that folder won't trigger a recompilation.
+If you add a new folder or file to the repo (e.g. `images/` for figures included in the document) that is relevant for the latex compiler, **you must add that path to `latex.yml`** under both `push.paths` and `pull_request.paths`. Otherwise, changes to new files won't trigger a recompilation.
 
 Example:
 
