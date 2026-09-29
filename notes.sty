@@ -1,0 +1,328 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{notes}[2026/09/29 Stile comune per dispense / Common style for lecture notes]
+
+% =========================================================
+%  LINGUA DELLA DISPENSA / LANGUAGE OF THE HANDOUT
+%  Si sceglie con l'opzione del pacchetto in notes.tex:
+%      \usepackage[italiano]{notes}   oppure   \usepackage[english]{notes}
+%  Tutte le etichette (Definizione/Definition, Teorema/Theorem, ecc.)
+%  e la lingua di babel si adattano automaticamente.
+%
+%  Choose it with the package option in notes.tex (see above): all
+%  labels and babel's language adapt automatically.
+% =========================================================
+\newcommand{\dispensalingua}{english}
+\DeclareOption{italiano}{\renewcommand{\dispensalingua}{italiano}}
+\DeclareOption{english}{\renewcommand{\dispensalingua}{english}}
+\ProcessOptions\relax
+
+% ---------- Font e codifica ----------
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[T1]{fontenc}
+\RequirePackage{etoolbox}
+\RequirePackage{tikz}
+\usetikzlibrary{patterns, calc}
+
+
+\ifdefstring{\dispensalingua}{italiano}{%
+    \RequirePackage[italian]{babel}
+}{%
+    \RequirePackage[english]{babel}
+}
+
+\RequirePackage[semibold]{libertinus} % font testo, matematica e monospace coerenti
+                                   % stile "manuale universitario serio"
+\RequirePackage{scrhack}              % compatibilità titlesec/tocloft con KOMA
+
+% ---------- Layout ----------
+\RequirePackage[a4paper,margin=2.7cm]{geometry}
+\RequirePackage{scrlayer-scrpage}
+\RequirePackage{titling}
+\RequirePackage{enumitem}
+\RequirePackage{microtype}
+\RequirePackage{titlesec}
+\RequirePackage{titletoc}
+
+% ---------- Paragrafi: rientro classico, NIENTE spazio tra un paragrafo
+% e l'altro (una riga vuota nel sorgente va semplicemente a capo, senza
+% aggiungere spazio verticale extra: niente "stile parskip")
+\setlength{\parskip}{\baselineskip}
+\setlength{\parindent}{0pt}
+% ---------- Titoli di sezione: classico, nero, essenziale ----------
+% section, subsection, subsubsection, paragraph tutti numerati e in TOC
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+
+% Il capitolo non è più usato nella struttura (solo Parte - Sezione - ...):
+% la sezione va rinumerata senza il prefisso "0." del capitolo inutilizzato.
+\renewcommand{\thesection}{\arabic{section}}
+
+\titleformat{\part}[display]
+  {\normalfont\bfseries\centering}
+  {\Large\thepart}
+  {1ex}
+  {\huge}
+\titlespacing*{\part}{0pt}{2cm}{3cm}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+\titleformat{\paragraph}[block]
+  {\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+\titlespacing*{\paragraph}{0pt}{2.3ex plus 1ex minus .2ex}{1em}
+
+% ---------- Colori ----------
+\RequirePackage{xcolor}
+\definecolor{primario}{RGB}{20,60,110}      % blu accademico
+\definecolor{secondario}{RGB}{90,90,90}
+\definecolor{defbg}{RGB}{233,240,249}
+\definecolor{defframe}{RGB}{20,60,110}      % blu, riuso il colore primario
+\definecolor{thbg}{RGB}{250,234,232}
+\definecolor{thframe}{RGB}{176,42,36}       % rosso deciso, non rosa/pastello
+\definecolor{exbg}{RGB}{252,248,235}
+\definecolor{exframe}{RGB}{180,130,20}
+\definecolor{lembg}{RGB}{244,238,250}
+\definecolor{lemframe}{RGB}{105,45,145}    % viola
+\definecolor{obsbg}{RGB}{252,246,237}       % fondo canvas crema
+\definecolor{obsstandalone}{RGB}{46,112,76} % verde per osservazioni autonome
+\newcommand{\obsContextFrame}{obsstandalone}
+
+% ---------- Etichette bilingui degli ambienti ----------
+\ifdefstring{\dispensalingua}{italiano}{%
+    \newcommand{\txtdefinizione}{Definizione}
+    \newcommand{\txtteorema}{Teorema}
+    \newcommand{\txtesempio}{Esempio}
+    \newcommand{\txtnota}{Nota}
+    \newcommand{\txtalgoritmo}{Algoritmo}
+    \newcommand{\txtlemma}{Lemma}
+    \newcommand{\txtosservazione}{Osservazione}
+    \newcommand{\txtdimostrazione}{Dimostrazione}
+    \newcommand{\txtparte}{Parte}
+}{%
+    \newcommand{\txtdefinizione}{Definition}
+    \newcommand{\txtteorema}{Theorem}
+    \newcommand{\txtesempio}{Example}
+    \newcommand{\txtnota}{Note}
+    \newcommand{\txtalgoritmo}{Algorithm}
+    \newcommand{\txtlemma}{Lemma}
+    \newcommand{\txtosservazione}{Observation}
+    \newcommand{\txtdimostrazione}{Proof}
+    \newcommand{\txtparte}{Part}
+}
+
+% Titolo opzionale comune agli ambienti colorati: senza parentesi graffe
+% viene mostrata soltanto l'etichetta dell'ambiente.
+\newcommand{\titoloambiente}[2]{%
+    \IfNoValueTF{#2}
+        {#1}%
+        {\ifstrempty{#2}{#1}{#1{} --- #2}}%
+}
+
+% ---------- Formato dell'indice: spaziatura, grassetto, puntini ----------
+% Parte: la "P" di \thepart include già l'etichetta (vedi sotto),
+% KOMA la mostra di default in grassetto/grande senza puntini: perfetto
+% così com'è, nessuna configurazione aggiuntiva necessaria.
+\renewcommand{\thepart}{\txtparte~\Roman{part}}
+
+% Sezione: ora è il livello numerato principale sotto "Parte":
+% grassetto, puntini, spazio prima di ogni voce (stile ex-"capitolo")
+\titlecontents{section}
+  [0pt]
+  {\addvspace{11pt}\bfseries}
+  {\thecontentslabel.\ }
+  {}
+  {\bfseries\titlerule*[0.6pc]{.}\contentspage}
+
+% Sottosezione
+\titlecontents{subsection}
+  [1.6em]
+  {\normalfont}
+  {\thecontentslabel.\ }
+  {}
+  {\normalfont\titlerule*[0.5pc]{.}\contentspage}
+
+% Sotto-sottosezione
+\titlecontents{subsubsection}
+  [3.4em]
+  {\normalfont\small}
+  {\thecontentslabel.\ }
+  {}
+  {\normalfont\small\titlerule*[0.5pc]{.}\contentspage}
+
+% Paragrafo
+\titlecontents{paragraph}
+  [5.2em]
+  {\normalfont\small}
+  {\thecontentslabel.\ }
+  {}
+  {\normalfont\small\titlerule*[0.5pc]{.}\contentspage}
+
+% ---------- Matematica ----------
+\RequirePackage{amsmath,amssymb,amsthm}
+\RequirePackage{mathtools}
+
+% ---------- Box colorati (definizioni, teoremi, esempi, algoritmi) ----------
+\RequirePackage{tcolorbox}
+\tcbuselibrary{skins,breakable,listings}
+
+% ---------- Codice / pseudocodice ----------
+\RequirePackage{listings}
+
+% Stile per lo pseudocodice: mathescape=true permette di scrivere $...$
+% dentro l'ambiente e viene reso come formula. Nessun comando necessario:
+% basta scrivere il testo, es.
+%   while $i \neq 0$ do
+%       a $\gets$ 5
+\lstdefinestyle{pseudo}{
+    basicstyle=\ttfamily\small,
+    mathescape=true,
+    escapechar=\%,                 % usa %...% per commenti in corsivo, es: %questo è un commento%
+    tabsize=2,
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false,
+    breaklines=true,
+    breakindent=1.5em,
+    numbers=left,
+    numberstyle=\tiny\color{secondario},
+    numbersep=10pt,
+    xleftmargin=1.8em,
+    keywordstyle=\bfseries,         % nero, niente colore: stile "libro serio"
+    commentstyle=\itshape\color{secondario},
+    % parole chiave riconosciute automaticamente (italiano + inglese)
+    keywords={%
+        while,do,end,if,then,else,for,to,downto,repeat,until,%
+        return,function,procedure,begin,and,or,not,in,break,continue,%
+        mentre,fare,fine,se,allora,altrimenti,per,ripeti,finche,%
+        restituisci,funzione,procedura,inizio,e,o,non%
+    },
+}
+\lstset{style=pseudo}
+
+% Ambiente "algoritmo": NON è un box colorato
+% Si usa esattamente come prima:
+%
+%   \begin{algoritmo}{Titolo dell'algoritmo}
+%   procedure Esempio(n)
+%       i $\gets$ 0
+%       while $i \neq n$ do
+%           i $\gets$ i + 1
+%       return i
+%   \end{algoritmo}
+%
+\NewTCBListing{algoritmo}{O{} g}{%
+    enhanced,
+    breakable,
+    listing only,
+    listing options={style=pseudo},
+    colback=white,          % nessuno sfondo
+    colbacktitle=white,     % titolo su sfondo bianco, non su barra colorata
+    colframe=black,
+    coltitle=black,
+    fonttitle=\bfseries,
+    boxrule=0pt,             % nessun bordo
+    leftrule=0pt,rightrule=0pt,
+    toprule=0.9pt,           % riga sottile sopra (sotto la didascalia)
+    bottomrule=0.4pt,        % riga sottile sotto il codice
+    arc=0pt,
+    left=0pt,right=0pt,top=3pt,bottom=3pt,
+    title={\titoloambiente{\txtalgoritmo~\thetcbcounter}{#2}},
+    #1
+}
+
+% ---------- Ambienti matematici colorati ----------
+\NewTColorBox{definizione}{O{} g}{%
+    enhanced,breakable,
+    colback=defbg,colframe=defframe,coltitle=white,fonttitle=\bfseries,
+    boxrule=0.5pt,arc=1mm,left=6pt,right=6pt,top=3pt,bottom=3pt,
+    title={\titoloambiente{\txtdefinizione}{#2}},#1
+}
+
+\NewTColorBox{teorema}{O{} g}{%
+    enhanced,breakable,
+    colback=thbg,colframe=thframe,coltitle=white,fonttitle=\bfseries,
+    boxrule=0.5pt,arc=1mm,left=6pt,right=6pt,top=3pt,bottom=3pt,
+    before upper={%
+        \renewcommand{\obsContextFrame}{thframe}%
+    },
+    title={\titoloambiente{\txtteorema}{#2}},#1
+}
+
+\NewTColorBox{lemma}{O{} g}{%
+    enhanced,breakable,
+    colback=lembg,colframe=lemframe,coltitle=white,fonttitle=\bfseries,
+    boxrule=0.5pt,arc=1mm,left=6pt,right=6pt,top=3pt,bottom=3pt,
+    before upper={%
+        \renewcommand{\obsContextFrame}{lemframe}%
+    },
+    title={\titoloambiente{\txtlemma}{#2}},
+    #1
+}
+
+\NewTColorBox{esempio}{O{} g}{%
+    enhanced,breakable,
+    colback=exbg,colframe=exframe,coltitle=white,fonttitle=\bfseries,
+    boxrule=0.5pt,arc=1mm,left=6pt,right=6pt,top=3pt,bottom=3pt,
+    title={\titoloambiente{\txtesempio}{#2}},#1
+}
+
+\NewTColorBox{nota}{O{} g}{%
+    enhanced,
+    breakable,
+    colback=white,
+    colframe=secondario,
+    coltitle=white,
+    fonttitle=\bfseries,
+    boxrule=0.4pt,
+    arc=1mm,
+    left=6pt,
+    right=6pt,
+    top=2pt,
+    bottom=2pt,
+    title={\titoloambiente{\txtnota}{#2}},
+    #1
+}
+
+% Il corpo resta color canvas; fascia e cornice seguono il contenitore.
+\NewTColorBox{osservazione}{O{} g}{%
+    enhanced,
+    breakable,
+    colback=obsbg,colframe=\obsContextFrame,
+    colbacktitle=\obsContextFrame,
+    coltitle=white,fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=1mm,left=6pt,right=6pt,top=3pt,bottom=3pt,
+    title={%
+        \IfNoValueTF{#2}
+            {\txtosservazione}%
+            {\ifstrempty{#2}{\txtosservazione}{\txtosservazione{}~#2}}%
+    },
+    #1
+}
+
+% ---------- Dimostrazione / Proof: sezione leggera con inizio e fine visibili ----------
+\renewcommand{\qedsymbol}{$\blacksquare$}
+\makeatletter
+\renewenvironment{proof}[1][\txtdimostrazione]{\par\vspace{-0.35\baselineskip}
+    \pushQED{\qed}%
+    \normalfont \topsep2\p@\@plus2\p@\relax
+    \noindent\textcolor{secondario}{\rule{\linewidth}{0.4pt}}\par
+    \trivlist
+    \item[\hskip\labelsep\bfseries #1\@addpunct{.}]\ignorespaces
+}{%
+    \popQED\endtrivlist\@endpefalse
+    \par\vspace{1pt}\noindent\textcolor{secondario}{\rule{\linewidth}{0.4pt}}\par
+}
+\makeatother
+
+% ---------- Intestazione / piè di pagina ----------
+\pagestyle{scrheadings}
+\clearpairofpagestyles
+\ofoot{\small\thepage}
+
+
+\RequirePackage[hidelinks]{hyperref} % niente colori sui link: TOC e riferimenti
+                                  % restano neri come in un libro stampato

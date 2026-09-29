@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - "notes.tex"
+      - "notes.sty"
       - ".github/workflows/latex.yml"
   pull_request:
     paths:
       - "notes.tex"
+      - "notes.sty"
       - ".github/workflows/latex.yml"
   workflow_dispatch:
 

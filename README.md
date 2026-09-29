@@ -4,7 +4,7 @@
 [![Made with LaTeX](https://img.shields.io/badge/Made%20with-LaTeX-008080.svg)](https://www.latex-project.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A minimal LaTeX template for lecture/course notes (`notes.tex`), built with `scrbook` and supporting both Italian and English labels (switch via `\dispensalingua` in the preamble).
+A minimal LaTeX template for lecture/course notes (`notes.tex`, with shared settings in `notes.sty`), built with `scrbook` and supporting both Italian and English labels (switch via the package option: `\usepackage[italiano]{notes}` or `\usepackage[english]{notes}`).
 
 ## How it works
 
@@ -29,6 +29,7 @@ on:
   push:
     paths:
       - "notes.tex"
+      - "notes.sty"
       - ".github/workflows/latex.yml"
 ```
 
@@ -41,11 +42,13 @@ on:
   push:
     paths:
       - "notes.tex"
+      - "notes.sty"
       - "images/**"
       - ".github/workflows/latex.yml"
   pull_request:
     paths:
       - "notes.tex"
+      - "notes.sty"
       - "images/**"
       - ".github/workflows/latex.yml"
 ```
