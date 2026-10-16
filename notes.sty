@@ -82,6 +82,7 @@
 \definecolor{defframe}{RGB}{20,60,110}      % blu, riuso il colore primario
 \definecolor{thbg}{RGB}{250,234,232}
 \definecolor{thframe}{RGB}{176,42,36}       % rosso deciso, non rosa/pastello
+\definecolor{corbg}{RGB}{253,246,245}       % rosa chiarissimo, più tenue di thbg
 \definecolor{exbg}{RGB}{252,248,235}
 \definecolor{exframe}{RGB}{180,130,20}
 \definecolor{lembg}{RGB}{244,238,250}
@@ -104,6 +105,7 @@
     \newcommand{\txtdimostrazione}{Dimostrazione}
     \newcommand{\txtparte}{Parte}
     \newcommand{\txtproprieta}{Proprietà}
+    \newcommand{\txtcorollario}{Corollario}
 }{%
     \newcommand{\txtdefinizione}{Definition}
     \newcommand{\txtteorema}{Theorem}
@@ -115,6 +117,7 @@
     \newcommand{\txtdimostrazione}{Proof}
     \newcommand{\txtparte}{Part}
     \newcommand{\txtproprieta}{Property}
+    \newcommand{\txtcorollario}{Corollary}
 }
 
 % Titolo opzionale comune agli ambienti colorati: senza parentesi graffe
@@ -316,6 +319,45 @@
             {\ifstrempty{#2}{\txtosservazione}{\txtosservazione{}~#2}}%
     },
     #1
+}
+
+% Corollario: pensato per stare subito sotto un teorema. Stesso rosso
+% del teorema, ma "in tono minore": fondo più chiaro, titolo rosso su
+% fondo chiaro (non su fascia piena), barra rossa più spessa a sinistra.
+\NewTColorBox{corollario}{O{} g}{%
+    enhanced,breakable,
+    colback=corbg,colframe=thframe,colbacktitle=corbg,coltitle=thframe,fonttitle=\bfseries,
+    boxrule=0.5pt,leftrule=2.5pt,titlerule=0.3pt,
+    arc=1mm,left=6pt,right=6pt,top=3pt,bottom=3pt,
+    before upper={%
+        \renewcommand{\obsContextFrame}{thframe}%
+    },
+    title={\titoloambiente{\txtcorollario}{#2}},#1
+}
+
+% ---------- Riquadro "evidenzia" (NON tcolorbox) ----------
+% Barra verticale a sinistra + fondo leggermente tinto, senza cornice né
+% titolo: serve a far risaltare un blocco di testo (es. la definizione di
+% istanze/problemi) senza l'aspetto "box". Si spezza tra le pagine.
+% Titolo opzionale:
+%
+%   \begin{evidenzia}            ...  \end{evidenzia}
+%   \begin{evidenzia}[Titolo]    ...  \end{evidenzia}
+%
+\RequirePackage{framed}
+\definecolor{evidbg}{RGB}{242,244,247}      % grigio-azzurro chiarissimo
+\definecolor{evidbar}{RGB}{20,60,110}       % blu primario
+\newenvironment{evidenzia}[1][]{%
+    \def\FrameCommand{%
+        {\color{evidbar}\vrule width 2.5pt}%
+        \fboxsep=7pt\colorbox{evidbg}%
+    }%
+    \MakeFramed{\advance\hsize-\width \FrameRestore}%
+    \setlength{\parskip}{0.5\baselineskip}%
+    \setlist{topsep=0pt,partopsep=0pt}%
+    \ifstrempty{#1}{}{\noindent\textbf{\textcolor{evidbar}{#1}}\par}%
+}{%
+    \endMakeFramed
 }
 
 % ---------- Dimostrazione / Proof: sezione leggera con inizio e fine visibili ----------
