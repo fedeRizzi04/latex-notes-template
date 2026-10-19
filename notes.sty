@@ -1,22 +1,19 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{notes}[2026/09/29 Stile comune per dispense / Common style for lecture notes]
+\ProvidesPackage{notes}[2026/09/29 Common style for lecture notes]
 
 % =========================================================
-%  LINGUA DELLA DISPENSA / LANGUAGE OF THE HANDOUT
-%  Si sceglie con l'opzione del pacchetto in notes.tex:
-%      \usepackage[italiano]{notes}   oppure   \usepackage[english]{notes}
-%  Tutte le etichette (Definizione/Definition, Teorema/Theorem, ecc.)
-%  e la lingua di babel si adattano automaticamente.
-%
-%  Choose it with the package option in notes.tex (see above): all
-%  labels and babel's language adapt automatically.
+%  DOCUMENT LANGUAGE
+%  Choose it with the package option in notes.tex:
+%      \usepackage[italiano]{notes}   or   \usepackage[english]{notes}
+%  All labels (Definizione/Definition, Teorema/Theorem, etc.) and
+%  babel's language adapt automatically.
 % =========================================================
 \newcommand{\dispensalingua}{english}
 \DeclareOption{italiano}{\renewcommand{\dispensalingua}{italiano}}
 \DeclareOption{english}{\renewcommand{\dispensalingua}{english}}
 \ProcessOptions\relax
 
-% ---------- Font e codifica ----------
+% ---------- Fonts and encoding ----------
 \RequirePackage[utf8]{inputenc}
 \RequirePackage[T1]{fontenc}
 \RequirePackage{etoolbox}
@@ -30,9 +27,8 @@
     \RequirePackage[english]{babel}
 }
 
-\RequirePackage[semibold]{libertinus} % font testo, matematica e monospace coerenti
-                                   % stile "manuale universitario serio"
-\RequirePackage{scrhack}              % compatibilità titlesec/tocloft con KOMA
+\RequirePackage[semibold]{libertinus} % same font family for text, math and monospace
+\RequirePackage{scrhack}              % titlesec/tocloft compatibility with KOMA
 
 % ---------- Layout ----------
 \RequirePackage[a4paper,margin=2.7cm]{geometry}
@@ -43,18 +39,16 @@
 \RequirePackage{titlesec}
 \RequirePackage{titletoc}
 
-% ---------- Paragrafi: rientro classico, NIENTE spazio tra un paragrafo
-% e l'altro (una riga vuota nel sorgente va semplicemente a capo, senza
-% aggiungere spazio verticale extra: niente "stile parskip")
+% ---------- Paragraphs: no indent, one blank line between paragraphs ----------
 \setlength{\parskip}{\baselineskip}
 \setlength{\parindent}{0pt}
-% ---------- Titoli di sezione: classico, nero, essenziale ----------
-% section, subsection, subsubsection, paragraph tutti numerati e in TOC
+% ---------- Section titles ----------
+% section, subsection, subsubsection, paragraph: all numbered and in the TOC
 \setcounter{secnumdepth}{4}
 \setcounter{tocdepth}{4}
 
-% Il capitolo non è più usato nella struttura (solo Parte - Sezione - ...):
-% la sezione va rinumerata senza il prefisso "0." del capitolo inutilizzato.
+% Structure: Part > Section > Subsection > ... (no chapters), so sections
+% are numbered 1, 2, 3 without the chapter prefix.
 \renewcommand{\thesection}{\arabic{section}}
 
 \titleformat{\part}[display]
@@ -74,26 +68,26 @@
   {\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
 \titlespacing*{\paragraph}{0pt}{2.3ex plus 1ex minus .2ex}{1em}
 
-% ---------- Colori ----------
+% ---------- Colors ----------
 \RequirePackage{xcolor}
-\definecolor{primario}{RGB}{20,60,110}      % blu accademico
+\definecolor{primario}{RGB}{20,60,110}      % blue
 \definecolor{secondario}{RGB}{90,90,90}
 \definecolor{defbg}{RGB}{233,240,249}
-\definecolor{defframe}{RGB}{20,60,110}      % blu, riuso il colore primario
+\definecolor{defframe}{RGB}{20,60,110}      % same blue as primario
 \definecolor{thbg}{RGB}{250,234,232}
-\definecolor{thframe}{RGB}{176,42,36}       % rosso deciso, non rosa/pastello
-\definecolor{corbg}{RGB}{253,246,245}       % rosa chiarissimo, più tenue di thbg
+\definecolor{thframe}{RGB}{176,42,36}       % red
+\definecolor{corbg}{RGB}{253,246,245}       % very light pink, corollary background
 \definecolor{exbg}{RGB}{252,248,235}
 \definecolor{exframe}{RGB}{180,130,20}
 \definecolor{lembg}{RGB}{244,238,250}
-\definecolor{lemframe}{RGB}{105,45,145}    % viola
-\definecolor{obsbg}{RGB}{252,246,237}       % fondo canvas crema
-\definecolor{obsstandalone}{RGB}{46,112,76} % verde per osservazioni autonome
-\definecolor{propbg}{RGB}{232,247,247}       % fondo turchese molto chiaro
-\definecolor{propframe}{RGB}{0,120,125}      % petrolio / turchese scuro
+\definecolor{lemframe}{RGB}{105,45,145}    % purple
+\definecolor{obsbg}{RGB}{252,246,237}       % cream, observation background
+\definecolor{obsstandalone}{RGB}{46,112,76} % green, observation outside other boxes
+\definecolor{propbg}{RGB}{232,247,247}       % very light teal background
+\definecolor{propframe}{RGB}{0,120,125}      % dark teal
 \newcommand{\obsContextFrame}{obsstandalone}
 
-% ---------- Etichette bilingui degli ambienti ----------
+% ---------- Environment labels (Italian / English) ----------
 \ifdefstring{\dispensalingua}{italiano}{%
     \newcommand{\txtdefinizione}{Definizione}
     \newcommand{\txtteorema}{Teorema}
@@ -120,22 +114,20 @@
     \newcommand{\txtcorollario}{Corollary}
 }
 
-% Titolo opzionale comune agli ambienti colorati: senza parentesi graffe
-% viene mostrata soltanto l'etichetta dell'ambiente.
+% Optional title shared by the colored environments: without the braces
+% only the environment label is shown.
 \newcommand{\titoloambiente}[2]{%
     \IfNoValueTF{#2}
         {#1}%
         {\ifstrempty{#2}{#1}{#1{} --- #2}}%
 }
 
-% ---------- Formato dell'indice: spaziatura, grassetto, puntini ----------
-% Parte: la "P" di \thepart include già l'etichetta (vedi sotto),
-% KOMA la mostra di default in grassetto/grande senza puntini: perfetto
-% così com'è, nessuna configurazione aggiuntiva necessaria.
+% ---------- Table of contents: spacing, bold, dots ----------
+% Part: \thepart already includes the label ("Parte I" / "Part I");
+% in the TOC it uses KOMA's default style (bold, no dots).
 \renewcommand{\thepart}{\txtparte~\Roman{part}}
 
-% Sezione: ora è il livello numerato principale sotto "Parte":
-% grassetto, puntini, spazio prima di ogni voce (stile ex-"capitolo")
+% Section: bold, dots, space before each entry
 \titlecontents{section}
   [0pt]
   {\addvspace{11pt}\bfseries}
@@ -143,7 +135,7 @@
   {}
   {\bfseries\titlerule*[0.6pc]{.}\contentspage}
 
-% Sottosezione
+% Subsection
 \titlecontents{subsection}
   [1.6em]
   {\normalfont}
@@ -151,7 +143,7 @@
   {}
   {\normalfont\titlerule*[0.5pc]{.}\contentspage}
 
-% Sotto-sottosezione
+% Subsubsection
 \titlecontents{subsubsection}
   [3.4em]
   {\normalfont\small}
@@ -159,7 +151,7 @@
   {}
   {\normalfont\small\titlerule*[0.5pc]{.}\contentspage}
 
-% Paragrafo
+% Paragraph
 \titlecontents{paragraph}
   [5.2em]
   {\normalfont\small}
@@ -167,26 +159,24 @@
   {}
   {\normalfont\small\titlerule*[0.5pc]{.}\contentspage}
 
-% ---------- Matematica ----------
+% ---------- Math ----------
 \RequirePackage{amsmath,amssymb,amsthm}
 \RequirePackage{mathtools}
 
-% ---------- Box colorati (definizioni, teoremi, esempi, algoritmi) ----------
+% ---------- Colored boxes (definitions, theorems, examples, algorithms) ----------
 \RequirePackage{tcolorbox}
 \tcbuselibrary{skins,breakable,listings}
 
-% ---------- Codice / pseudocodice ----------
+% ---------- Code / pseudocode ----------
 \RequirePackage{listings}
 
-% Stile per lo pseudocodice: mathescape=true permette di scrivere $...$
-% dentro l'ambiente e viene reso come formula. Nessun comando necessario:
-% basta scrivere il testo, es.
+% Pseudocode style: text between $...$ is typeset as math, e.g.
 %   while $i \neq 0$ do
 %       a $\gets$ 5
 \lstdefinestyle{pseudo}{
     basicstyle=\ttfamily\small,
     mathescape=true,
-    escapechar=\%,                 % usa %...% per commenti in corsivo, es: %questo è un commento%
+    escapechar=\%,                 % use %...% for italic comments, e.g. %this is a comment%
     tabsize=2,
     columns=fullflexible,
     keepspaces=true,
@@ -197,9 +187,9 @@
     numberstyle=\tiny\color{secondario},
     numbersep=10pt,
     xleftmargin=1.8em,
-    keywordstyle=\bfseries,         % nero, niente colore: stile "libro serio"
+    keywordstyle=\bfseries,         % bold, no color
     commentstyle=\itshape\color{secondario},
-    % parole chiave riconosciute automaticamente (italiano + inglese)
+    % keywords recognized automatically (Italian + English)
     keywords={%
         while,do,end,if,then,else,for,to,downto,repeat,until,%
         return,function,procedure,begin,and,or,not,in,break,continue,%
@@ -209,11 +199,11 @@
 }
 \lstset{style=pseudo}
 
-% Ambiente "algoritmo": NON è un box colorato
-% Si usa esattamente come prima:
+% "algoritmo" environment: no background or frame, just a rule above and
+% one below. Usage:
 %
-%   \begin{algoritmo}{Titolo dell'algoritmo}
-%   procedure Esempio(n)
+%   \begin{algoritmo}{Algorithm title}
+%   procedure Example(n)
 %       i $\gets$ 0
 %       while $i \neq n$ do
 %           i $\gets$ i + 1
@@ -225,22 +215,22 @@
     breakable,
     listing only,
     listing options={style=pseudo},
-    colback=white,          % nessuno sfondo
-    colbacktitle=white,     % titolo su sfondo bianco, non su barra colorata
+    colback=white,          % no background
+    colbacktitle=white,     % title on white background
     colframe=black,
     coltitle=black,
     fonttitle=\bfseries,
-    boxrule=0pt,             % nessun bordo
+    boxrule=0pt,             % no border
     leftrule=0pt,rightrule=0pt,
-    toprule=0.9pt,           % riga sottile sopra (sotto la didascalia)
-    bottomrule=0.4pt,        % riga sottile sotto il codice
+    toprule=0.9pt,           % thin rule above (below the caption)
+    bottomrule=0.4pt,        % thin rule below the code
     arc=0pt,
     left=0pt,right=0pt,top=3pt,bottom=3pt,
     title={\titoloambiente{\txtalgoritmo~\thetcbcounter}{#2}},
     #1
 }
 
-% ---------- Ambienti matematici colorati ----------
+% ---------- Colored math environments ----------
 \NewTColorBox{definizione}{O{} g}{%
     enhanced,breakable,
     colback=defbg,colframe=defframe,coltitle=white,fonttitle=\bfseries,
@@ -248,7 +238,7 @@
     title={\titoloambiente{\txtdefinizione}{#2}},#1
 }
 
-% Titolo "incastonato" sul bordo superiore invece della fascia piena.
+% Property: the title sits on the top border of the box.
 \NewTColorBox{proprieta}{O{} g}{%
     enhanced,breakable,
     colback=propbg,colframe=propframe,coltitle=propframe,fonttitle=\bfseries,
@@ -304,7 +294,8 @@
     #1
 }
 
-% Il corpo resta color canvas; fascia e cornice seguono il contenitore.
+% Observation: cream background; title bar and frame take the color of the
+% enclosing box (theorem, lemma, corollary), green outside other boxes.
 \NewTColorBox{osservazione}{O{} g}{%
     enhanced,
     breakable,
@@ -321,9 +312,8 @@
     #1
 }
 
-% Corollario: pensato per stare subito sotto un teorema. Stesso rosso
-% del teorema, ma "in tono minore": fondo più chiaro, titolo rosso su
-% fondo chiaro (non su fascia piena), barra rossa più spessa a sinistra.
+% Corollary: meant to go right after a theorem. Same red as the theorem,
+% with a lighter background, no title bar and a thicker rule on the left.
 \NewTColorBox{corollario}{O{} g}{%
     enhanced,breakable,
     colback=corbg,colframe=thframe,colbacktitle=corbg,coltitle=thframe,fonttitle=\bfseries,
@@ -335,18 +325,17 @@
     title={\titoloambiente{\txtcorollario}{#2}},#1
 }
 
-% ---------- Riquadro "evidenzia" (NON tcolorbox) ----------
-% Barra verticale a sinistra + fondo leggermente tinto, senza cornice né
-% titolo: serve a far risaltare un blocco di testo (es. la definizione di
-% istanze/problemi) senza l'aspetto "box". Si spezza tra le pagine.
-% Titolo opzionale:
+% ---------- "evidenzia" block ----------
+% Vertical bar on the left and a lightly tinted background, no frame: makes a
+% block of text stand out (e.g. the definition of a problem) without using a
+% box. Breaks across pages. Optional title:
 %
-%   \begin{evidenzia}            ...  \end{evidenzia}
-%   \begin{evidenzia}[Titolo]    ...  \end{evidenzia}
+%   \begin{evidenzia}           ...  \end{evidenzia}
+%   \begin{evidenzia}[Title]    ...  \end{evidenzia}
 %
 \RequirePackage{framed}
-\definecolor{evidbg}{RGB}{242,244,247}      % grigio-azzurro chiarissimo
-\definecolor{evidbar}{RGB}{20,60,110}       % blu primario
+\definecolor{evidbg}{RGB}{242,244,247}      % very light blue-gray
+\definecolor{evidbar}{RGB}{20,60,110}       % primary blue
 \newenvironment{evidenzia}[1][]{%
     \def\FrameCommand{%
         {\color{evidbar}\vrule width 2.5pt}%
@@ -360,7 +349,7 @@
     \endMakeFramed
 }
 
-% ---------- Dimostrazione / Proof: sezione leggera con inizio e fine visibili ----------
+% ---------- Proof: light section with visible start and end ----------
 \renewcommand{\qedsymbol}{$\blacksquare$}
 \makeatletter
 \renewenvironment{proof}[1][\txtdimostrazione]{\par\vspace{-0.35\baselineskip}
@@ -375,11 +364,25 @@
 }
 \makeatother
 
-% ---------- Intestazione / piè di pagina ----------
+% ---------- English environment names ----------
+% Every environment can also be written with its English name, e.g.
+% \begin{definition} instead of \begin{definizione}. The printed label
+% always follows the language option.
+\NewEnvironmentCopy{definition}{definizione}
+\NewEnvironmentCopy{property}{proprieta}
+\NewEnvironmentCopy{theorem}{teorema}
+\NewEnvironmentCopy{example}{esempio}
+\NewEnvironmentCopy{note}{nota}
+\NewEnvironmentCopy{observation}{osservazione}
+\NewEnvironmentCopy{remark}{osservazione}
+\NewEnvironmentCopy{corollary}{corollario}
+\NewEnvironmentCopy{highlight}{evidenzia}
+\NewEnvironmentCopy{algorithm}{algoritmo}
+
+% ---------- Header / footer ----------
 \pagestyle{scrheadings}
 \clearpairofpagestyles
 \ofoot{\small\thepage}
 
 
-\RequirePackage[hidelinks]{hyperref} % niente colori sui link: TOC e riferimenti
-                                  % restano neri come in un libro stampato
+\RequirePackage[hidelinks]{hyperref} % clickable but black links (TOC and references)

@@ -6,6 +6,21 @@
 
 A minimal LaTeX template for lecture/course notes (`notes.tex`, with shared settings in `notes.sty`), built with `scrbook` and supporting both Italian and English labels (switch via the package option: `\usepackage[italiano]{notes}` or `\usepackage[english]{notes}`).
 
+Every environment can be written with its Italian or English name; the printed label always follows the language option:
+
+| Italian | English |
+|---|---|
+| `definizione` | `definition` |
+| `proprieta` | `property` |
+| `teorema` | `theorem` |
+| `lemma` | `lemma` |
+| `corollario` | `corollary` |
+| `esempio` | `example` |
+| `nota` | `note` |
+| `osservazione` | `observation`, `remark` |
+| `evidenzia` | `highlight` |
+| `algoritmo` | `algorithm` |
+
 ## How it works
 
 On every push or pull request, the [`latex.yml`](.github/workflows/latex.yml) GitHub Action compiles `notes.tex` and publishes `notes.pdf` as a build artifact.
