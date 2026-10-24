@@ -328,25 +328,91 @@
 % ---------- "evidenzia" block ----------
 % Vertical bar on the left and a lightly tinted background, no frame: makes a
 % block of text stand out (e.g. the definition of a problem) without using a
-% box. Breaks across pages. Optional title:
+% box. Breaks across pages, also inside another box (a theorem, a proof
+% inside a theorem, ...). Optional title:
 %
 %   \begin{evidenzia}           ...  \end{evidenzia}
 %   \begin{evidenzia}[Title]    ...  \end{evidenzia}
 %
+% In normal text framed does the job. Inside another box framed cannot
+% break, so the content is cut line by line and each piece is colored on
+% its own: the outer box can then break the page between two lines.
 \RequirePackage{framed}
 \definecolor{evidbg}{RGB}{242,244,247}      % very light blue-gray
 \definecolor{evidbar}{RGB}{20,60,110}       % primary blue
+\newcommand{\evid@barw}{2.5pt}              % bar thickness
+\newcommand{\evid@pad}{7pt}                 % inner padding
+\newsavebox{\evid@content}
+\newsavebox{\evid@piece}
+\newsavebox{\evid@cur}
+\newdimen\evid@wd
+\newif\ifevid@has
+\newif\ifevid@first
 \newenvironment{evidenzia}[1][]{%
-    \def\FrameCommand{%
-        {\color{evidbar}\vrule width 2.5pt}%
-        \fboxsep=7pt\colorbox{evidbg}%
-    }%
-    \MakeFramed{\advance\hsize-\width \FrameRestore}%
+    \par
+    \ifinner
+        \let\evid@end\evid@endinner
+        \setbox\evid@content\vbox\bgroup
+            \advance\hsize-\dimexpr\evid@barw+2\dimexpr\evid@pad\relax\relax
+            \FrameRestore
+    \else
+        \let\evid@end\endMakeFramed
+        \def\FrameCommand{%
+            {\color{evidbar}\vrule width \evid@barw}%
+            \fboxsep=\evid@pad\colorbox{evidbg}%
+        }%
+        \MakeFramed{\advance\hsize-\width \FrameRestore}%
+    \fi
     \setlength{\parskip}{0.5\baselineskip}%
     \setlist{topsep=0pt,partopsep=0pt}%
     \ifstrempty{#1}{}{\noindent\textbf{\textcolor{evidbar}{#1}}\par}%
 }{%
-    \endMakeFramed
+    \evid@end
+}
+% Puts the piece in \evid@cur on the page with bar and background; #1 = how
+% far the background goes past the bottom (avoids thin white lines between
+% pieces in some PDF viewers).
+\newcommand{\evid@emit}[1]{%
+    \setbox\evid@cur\vbox{\unvbox\evid@cur\kern\z@}%
+    \ifevid@first\evid@firstfalse\else\nointerlineskip\fi
+    \hbox{%
+        {\color{evidbar}\vrule width \evid@barw height \ht\evid@cur depth #1}%
+        {\color{evidbg}\vrule width \dimexpr\evid@wd+2\dimexpr\evid@pad\relax\relax
+            height \ht\evid@cur depth #1}%
+        \kern-\dimexpr\evid@wd+\evid@pad\relax
+        \hbox to\evid@wd{\box\evid@cur\hss}%
+        \kern\evid@pad
+    }%
+    \kern-#1\relax
+}
+\newcommand{\evid@endinner}{%
+    \par\egroup
+    \evid@wd\wd\evid@content
+    \splittopskip\z@ \splitmaxdepth\maxdimen
+    \vfuzz\maxdimen \vbadness\@M % no warnings for the \vsplit to height 0
+    \setbox\evid@cur\vbox{\kern\evid@pad}%
+    \evid@hasfalse \evid@firsttrue
+    \loop\unless\ifvoid\evid@content
+        % \vsplit to height 0 takes a single line; the space dropped at the
+        % cut (\dimen@) is put back by hand below the line
+        \dimen@\dimexpr\ht\evid@content+\dp\evid@content\relax
+        \setbox\evid@piece\vsplit\evid@content to \z@
+        \setbox\evid@piece\vbox{\unvbox\evid@piece}%
+        \advance\dimen@-\dimexpr\ht\evid@piece+\dp\evid@piece\relax
+        \ifvoid\evid@content\else
+            \advance\dimen@-\dimexpr\ht\evid@content+\dp\evid@content\relax
+        \fi
+        \ifevid@has
+            \ifdim\dimexpr\ht\evid@piece+\dp\evid@piece\relax>\z@
+                \evid@emit{0.5pt}\penalty\z@
+                \setbox\evid@cur\vbox{}%
+            \fi
+        \fi
+        \setbox\evid@cur\vbox{\unvbox\evid@cur\box\evid@piece\kern\dimen@}%
+        \evid@hastrue
+    \repeat
+    \setbox\evid@cur\vbox{\unvbox\evid@cur\kern\evid@pad}%
+    \evid@emit{\z@}%
 }
 
 % ---------- Proof: light section with visible start and end ----------
