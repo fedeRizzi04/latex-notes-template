@@ -230,8 +230,142 @@
     #1
 }
 
+% ---------- Nested boxes that break across pages ----------
+% tcolorbox only breaks the outermost box across pages: a box inside another
+% one (e.g. a lemma inside the proof of a theorem) becomes a single block
+% and, if it does not fit, jumps to the next page leaving a gap. That is why
+% the colored environments are defined with \NewBreakableBox (same syntax
+% as \NewTColorBox): on their own they are plain tcolorboxes, when nested
+% the content is cut line by line and each line becomes a "strip" of the box
+% (the first one with the title, the last one with the bottom border). The
+% strips touch each other so the box looks whole, but the outer box can
+% break the page between two strips.
+\newbox\nb@content
+\newbox\nb@piece
+\newbox\nb@strip
+\newdimen\nb@total      % height of the content
+\newdimen\nb@top        % top of the current line (from the top)
+\newdimen\nb@cut        % cut above the current line
+\newdimen\nb@nexttop
+\newdimen\nb@nextcut
+\newcount\nb@n
+\newif\ifnb@last
+
+\newcommand{\NewBreakableBox}[3]{%
+    \NewDocumentEnvironment{#1}{#2}
+        {\begin{breakablebox}{#3}}
+        {\end{breakablebox}}%
+}
+
+\NewDocumentEnvironment{breakablebox}{+m}{%
+    \ifnum\c@tcblayer>\z@
+        \expandafter\@firstoftwo
+    \else
+        \expandafter\@secondoftwo
+    \fi
+    {\let\nb@end\nb@close\nb@open{#1}}%
+    {\def\nb@end{\end{tcolorbox}}\begin{tcolorbox}[#1]}%
+}{\nb@end}
+
+% Typesets the content as tcolorbox would, but in a \vbox we can cut.
+\newcommand{\nb@open}[1]{%
+    \def\nb@options{#1}%
+    \tcbset{reset,every box,#1}%
+    \let\iftcb@minipage\if@minipage
+    \tcbdimto\nb@width{\kvtcb@width-(\kvtcb@left@rule+\kvtcb@leftupper
+        +(\kvtcb@boxsep)*2+\kvtcb@rightupper+\kvtcb@right@rule)}%
+    \setbox\nb@content\vbox\bgroup
+        \hsize=\nb@width
+        \color@begingroup
+        \textwidth\hsize \columnwidth\hsize
+        \@parboxrestore
+        \let\@listdepth\@mplistdepth \@mplistdepth\z@
+        \@setminipage
+        \color{tcbcolupper}%
+        \kvtcb@fontupper\kvtcb@halignupper\tcb@insert@before@upper
+}
+\newcommand{\nb@close}{%
+        \par\unskip\@minipagefalse
+        \color@endgroup
+    \egroup
+    \kvtcb@beforebox
+    \begingroup
+    \vbadness\@M \vfuzz\maxdimen \boxmaxdepth\maxdimen
+    \splittopskip\z@skip \splitmaxdepth\maxdimen \parskip\z@skip
+    \nb@total=\dimexpr\ht\nb@content+\dp\nb@content\relax
+    \nb@top\z@ \nb@cut\z@ \nb@n\z@
+    \nb@loop
+    \endgroup
+    \kvtcb@afterbox
+}
+
+% Takes one line at a time (\vsplit to 0pt stops at the first possible
+% break) and cuts halfway through the space between two lines.
+\def\nb@loop{%
+    \ifvoid\nb@content\else
+        \advance\nb@n\@ne
+        \setbox\nb@piece\vsplit\nb@content to \z@
+        \setbox\nb@piece\vbox{\unvbox\nb@piece}%
+        \nb@lastfalse
+        \ifvoid\nb@content
+            \nb@lasttrue
+        \else
+            \ifdim\dimexpr\ht\nb@content+\dp\nb@content\relax=\z@
+                \setbox\nb@piece\vbox{\unvbox\nb@piece\unvbox\nb@content}%
+                \nb@lasttrue
+            \fi
+        \fi
+        \ifnb@last
+            \nb@nexttop\nb@total \nb@nextcut\nb@total
+        \else
+            \nb@nexttop=\dimexpr\nb@total-\ht\nb@content-\dp\nb@content\relax
+            \nb@nextcut=\dimexpr(\nb@top+\ht\nb@piece+\dp\nb@piece
+                +\nb@nexttop)/2\relax
+        \fi
+        \nb@emit
+        \nb@top\nb@nexttop \nb@cut\nb@nextcut
+        \expandafter\nb@loop
+    \fi
+}
+
+\def\nb@emit{%
+    \edef\nb@height{\the\dimexpr\nb@nextcut-\nb@cut\relax}%
+    \edef\nb@offset{\the\dimexpr\nb@top-\nb@cut\relax}%
+    \edef\nb@kind{%
+        \ifnum\nb@n=\@ne \ifnb@last whole\else first\fi
+        \else \ifnb@last last\else middle\fi\fi}%
+    \setbox\nb@strip\hbox{%
+        \expandafter\nb@box\expandafter{\nb@options}%
+            {\vbox to \nb@height{\vskip\nb@offset\box\nb@piece\vss}}%
+    }%
+    \ifnum\nb@n>\@ne
+        \penalty\ifnb@last\widowpenalty\else
+            \ifnum\nb@n=\tw@\clubpenalty\else\interlinepenalty\fi\fi
+        \nointerlineskip\noindent
+    \fi
+    \box\nb@strip\par
+}
+\long\def\nb@box#1#2{%
+    \begin{tcolorbox}[#1,nobeforeafter,before upper=,after upper=,nb/\nb@kind]#2\end{tcolorbox}%
+}
+
+% The strips after the first slightly overlap the previous one, so that no
+% thin lines show up between them in PDF viewers.
+\tcbset{
+    nb/whole/.style={},
+    nb/first/.style={skin=enhancedfirst,bottomrule=0pt,bottom=-\kvtcb@boxsep},
+    nb/middle/.style={skin=enhancedmiddle,notitle,toprule=0pt,bottomrule=0pt,
+        top=-\kvtcb@boxsep,bottom=-\kvtcb@boxsep,nb/overlap},
+    nb/last/.style={skin=enhancedlast,notitle,toprule=0pt,
+        top=-\kvtcb@boxsep,nb/overlap},
+    nb/overlap/.style={underlay={%
+        \fill[tcbcolframe] (frame.north west) rectangle ([yshift=.3pt]frame.north east);
+        \fill[tcbcolback] ([yshift=-.3pt]interior.north west) rectangle ([yshift=.6pt]interior.north east);
+    }},
+}
+
 % ---------- Colored math environments ----------
-\NewTColorBox{definizione}{O{} g}{%
+\NewBreakableBox{definizione}{O{} g}{%
     enhanced,breakable,
     colback=defbg,colframe=defframe,coltitle=white,fonttitle=\bfseries,
     boxrule=0.5pt,arc=1mm,left=6pt,right=6pt,top=3pt,bottom=3pt,
@@ -239,7 +373,7 @@
 }
 
 % Property: the title sits on the top border of the box.
-\NewTColorBox{proprieta}{O{} g}{%
+\NewBreakableBox{proprieta}{O{} g}{%
     enhanced,breakable,
     colback=propbg,colframe=propframe,coltitle=propframe,fonttitle=\bfseries,
     boxrule=0.8pt,arc=2mm,left=3mm,right=3mm,top=2mm,bottom=2mm,
@@ -249,7 +383,7 @@
     title={\titoloambiente{\txtproprieta}{#2}},#1
 }
 
-\NewTColorBox{teorema}{O{} g}{%
+\NewBreakableBox{teorema}{O{} g}{%
     enhanced,breakable,
     colback=thbg,colframe=thframe,coltitle=white,fonttitle=\bfseries,
     boxrule=0.5pt,arc=1mm,left=6pt,right=6pt,top=3pt,bottom=3pt,
@@ -259,7 +393,7 @@
     title={\titoloambiente{\txtteorema}{#2}},#1
 }
 
-\NewTColorBox{lemma}{O{} g}{%
+\NewBreakableBox{lemma}{O{} g}{%
     enhanced,breakable,
     colback=lembg,colframe=lemframe,coltitle=white,fonttitle=\bfseries,
     boxrule=0.5pt,arc=1mm,left=6pt,right=6pt,top=3pt,bottom=3pt,
@@ -270,14 +404,14 @@
     #1
 }
 
-\NewTColorBox{esempio}{O{} g}{%
+\NewBreakableBox{esempio}{O{} g}{%
     enhanced,breakable,
     colback=exbg,colframe=exframe,coltitle=white,fonttitle=\bfseries,
     boxrule=0.5pt,arc=1mm,left=6pt,right=6pt,top=3pt,bottom=3pt,
     title={\titoloambiente{\txtesempio}{#2}},#1
 }
 
-\NewTColorBox{nota}{O{} g}{%
+\NewBreakableBox{nota}{O{} g}{%
     enhanced,
     breakable,
     colback=white,
@@ -296,7 +430,7 @@
 
 % Observation: cream background; title bar and frame take the color of the
 % enclosing box (theorem, lemma, corollary), green outside other boxes.
-\NewTColorBox{osservazione}{O{} g}{%
+\NewBreakableBox{osservazione}{O{} g}{%
     enhanced,
     breakable,
     colback=obsbg,colframe=\obsContextFrame,
@@ -314,7 +448,7 @@
 
 % Corollary: meant to go right after a theorem. Same red as the theorem,
 % with a lighter background, no title bar and a thicker rule on the left.
-\NewTColorBox{corollario}{O{} g}{%
+\NewBreakableBox{corollario}{O{} g}{%
     enhanced,breakable,
     colback=corbg,colframe=thframe,colbacktitle=corbg,coltitle=thframe,fonttitle=\bfseries,
     boxrule=0.5pt,leftrule=2.5pt,titlerule=0.3pt,
@@ -327,92 +461,27 @@
 
 % ---------- "evidenzia" block ----------
 % Vertical bar on the left and a lightly tinted background, no frame: makes a
-% block of text stand out (e.g. the definition of a problem) without using a
-% box. Breaks across pages, also inside another box (a theorem, a proof
-% inside a theorem, ...). Optional title:
+% block of text stand out (e.g. the definition of a problem) without looking
+% like a box. It is defined like the other boxes, so it also breaks across
+% pages inside another box (a theorem, a proof inside a theorem, ...).
+% Optional title:
 %
 %   \begin{evidenzia}           ...  \end{evidenzia}
 %   \begin{evidenzia}[Title]    ...  \end{evidenzia}
 %
-% In normal text framed does the job. Inside another box framed cannot
-% break, so the content is cut line by line and each piece is colored on
-% its own: the outer box can then break the page between two lines.
-\RequirePackage{framed}
 \definecolor{evidbg}{RGB}{242,244,247}      % very light blue-gray
 \definecolor{evidbar}{RGB}{20,60,110}       % primary blue
-\newcommand{\evid@barw}{2.5pt}              % bar thickness
-\newcommand{\evid@pad}{7pt}                 % inner padding
-\newsavebox{\evid@content}
-\newsavebox{\evid@piece}
-\newsavebox{\evid@cur}
-\newdimen\evid@wd
-\newif\ifevid@has
-\newif\ifevid@first
-\newenvironment{evidenzia}[1][]{%
-    \par
-    \ifinner
-        \let\evid@end\evid@endinner
-        \setbox\evid@content\vbox\bgroup
-            \advance\hsize-\dimexpr\evid@barw+2\dimexpr\evid@pad\relax\relax
-            \FrameRestore
-    \else
-        \let\evid@end\endMakeFramed
-        \def\FrameCommand{%
-            {\color{evidbar}\vrule width \evid@barw}%
-            \fboxsep=\evid@pad\colorbox{evidbg}%
-        }%
-        \MakeFramed{\advance\hsize-\width \FrameRestore}%
-    \fi
-    \setlength{\parskip}{0.5\baselineskip}%
-    \setlist{topsep=0pt,partopsep=0pt}%
-    \ifstrempty{#1}{}{\noindent\textbf{\textcolor{evidbar}{#1}}\par}%
-}{%
-    \evid@end
-}
-% Puts the piece in \evid@cur on the page with bar and background; #1 = how
-% far the background goes past the bottom (avoids thin white lines between
-% pieces in some PDF viewers).
-\newcommand{\evid@emit}[1]{%
-    \setbox\evid@cur\vbox{\unvbox\evid@cur\kern\z@}%
-    \ifevid@first\evid@firstfalse\else\nointerlineskip\fi
-    \hbox{%
-        {\color{evidbar}\vrule width \evid@barw height \ht\evid@cur depth #1}%
-        {\color{evidbg}\vrule width \dimexpr\evid@wd+2\dimexpr\evid@pad\relax\relax
-            height \ht\evid@cur depth #1}%
-        \kern-\dimexpr\evid@wd+\evid@pad\relax
-        \hbox to\evid@wd{\box\evid@cur\hss}%
-        \kern\evid@pad
-    }%
-    \kern-#1\relax
-}
-\newcommand{\evid@endinner}{%
-    \par\egroup
-    \evid@wd\wd\evid@content
-    \splittopskip\z@ \splitmaxdepth\maxdimen
-    \vfuzz\maxdimen \vbadness\@M % no warnings for the \vsplit to height 0
-    \setbox\evid@cur\vbox{\kern\evid@pad}%
-    \evid@hasfalse \evid@firsttrue
-    \loop\unless\ifvoid\evid@content
-        % \vsplit to height 0 takes a single line; the space dropped at the
-        % cut (\dimen@) is put back by hand below the line
-        \dimen@\dimexpr\ht\evid@content+\dp\evid@content\relax
-        \setbox\evid@piece\vsplit\evid@content to \z@
-        \setbox\evid@piece\vbox{\unvbox\evid@piece}%
-        \advance\dimen@-\dimexpr\ht\evid@piece+\dp\evid@piece\relax
-        \ifvoid\evid@content\else
-            \advance\dimen@-\dimexpr\ht\evid@content+\dp\evid@content\relax
-        \fi
-        \ifevid@has
-            \ifdim\dimexpr\ht\evid@piece+\dp\evid@piece\relax>\z@
-                \evid@emit{0.5pt}\penalty\z@
-                \setbox\evid@cur\vbox{}%
-            \fi
-        \fi
-        \setbox\evid@cur\vbox{\unvbox\evid@cur\box\evid@piece\kern\dimen@}%
-        \evid@hastrue
-    \repeat
-    \setbox\evid@cur\vbox{\unvbox\evid@cur\kern\evid@pad}%
-    \evid@emit{\z@}%
+\NewBreakableBox{evidenzia}{O{}}{%
+    enhanced,breakable,
+    colback=evidbg,colframe=evidbar,frame hidden,
+    boxrule=0pt,leftrule=2.5pt,borderline west={2.5pt}{0pt}{evidbar},
+    sharp corners,
+    boxsep=0pt,left=7pt,right=7pt,top=7pt,bottom=7pt,
+    before upper={%
+        \setlength{\parskip}{0.5\baselineskip}%
+        \setlist{topsep=0pt,partopsep=0pt}%
+        \ifstrempty{#1}{}{\noindent\textbf{\textcolor{evidbar}{#1}}\par}%
+    },
 }
 
 % ---------- Proof: light section with visible start and end ----------
