@@ -258,6 +258,7 @@
 }
 
 \NewDocumentEnvironment{breakablebox}{+m}{%
+    \nb@endprooflabel
     \ifnum\c@tcblayer>\z@
         \expandafter\@firstoftwo
     \else
@@ -266,6 +267,17 @@
     {\let\nb@end\nb@close\nb@open{#1}}%
     {\def\nb@end{\end{tcolorbox}}\begin{tcolorbox}[#1]}%
 }{\nb@end}
+
+% A box as the first thing in a proof would share the line with the label
+% ("Proof.") and overlap it (or, inside another box, stick out on the right):
+% in that case the label goes on its own line first. Only for the proof
+% label: a box right after the \item of a list stays beside the bullet.
+\def\nb@proofdepth{-1}  % list depth of the current proof, -1 outside proofs
+\newcommand{\nb@endprooflabel}{%
+    \if@inlabel\ifnum\@listdepth=\nb@proofdepth\relax
+        \leavevmode\par\nobreak
+    \fi\fi
+}
 
 % Typesets the content as tcolorbox would, but in a \vbox we can cut.
 \newcommand{\nb@open}[1]{%
@@ -492,6 +504,7 @@
     \normalfont \topsep2\p@\@plus2\p@\relax
     \noindent\textcolor{secondario}{\rule{\linewidth}{0.4pt}}\par
     \trivlist
+    \edef\nb@proofdepth{\the\@listdepth}%
     \item[\hskip\labelsep\bfseries #1\@addpunct{.}]\ignorespaces
 }{%
     \popQED\endtrivlist\@endpefalse
